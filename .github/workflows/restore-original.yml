@@ -1,0 +1,37 @@
+name: Restore Original App
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clone original working repository
+        run: git clone --depth 1 https://github.com/alfazpatel221b-ux/Aztec-Control-Center.git /tmp/original
+      - name: Locate original application inside project archive
+        run: |
+          set -e
+          rm -rf /tmp/unpacked
+          mkdir -p /tmp/unpacked
+          unzip -q /tmp/original/project-full.zip -d /tmp/unpacked
+          ROOT=$(find /tmp/unpacked -type f -name package.json -not -path '*/node_modules/*' -print -quit | xargs -r dirname)
+          if [ -z "$ROOT" ]; then echo 'No package.json found inside project-full.zip'; exit 1; fi
+          echo "ROOT=$ROOT" >> "$GITHUB_ENV"
+          echo "Original application root: $ROOT"
+          find "$ROOT" -maxdepth 2 -type f | head -100
+      - name: Replace demo with original application source
+        run: |
+          set -e
+          rsync -a --delete --exclude='.git' --exclude='.env' --exclude='.env.*' --exclude='node_modules' --exclude='.next' --exclude='.firebase' --exclude='firebase-debug.log' --exclude='project-full.zip' "$ROOT/" ./
+      - name: Commit restored source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && echo 'No changes' && exit 0
+          git commit -m 'Restore original Aztec Control Center application source'
+          git push
