@@ -1,22 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { useAuth } from '../provider';
+import type { User } from 'firebase/auth';
+
+const DEMO_USER = {
+  uid: 'demo-user',
+  email: 'demo@dentsu.com',
+  displayName: 'Demo User',
+  photoURL: '',
+} as unknown as User;
 
 export function useUser() {
-  const auth = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const sync = () => {
+      setUser(sessionStorage.getItem('aztec-demo-authenticated') === 'true' ? DEMO_USER : null);
       setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [auth]);
+    };
+    sync();
+    window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
+  }, []);
 
   return { user, loading };
 }
