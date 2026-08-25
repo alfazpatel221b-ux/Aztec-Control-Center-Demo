@@ -1,17 +1,12 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  /* config options here */
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.pexels.com',
         port: '',
         pathname: '/**',
       },
@@ -22,6 +17,10 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  experimental: {
+    // Allows the workstation domain to communicate with the Next.js dev server resources
+    allowedDevOrigins: ['*.cloudworkstations.dev', 'localhost:9002'],
   },
 };
 

@@ -1,9 +1,5 @@
-# Aztec Control Center — Recruiter Demo
+# Firebase Studio
 
-This repository contains the recruiter-safe demo version of the Aztec Control Center application.
+This is a NextJS starter in Firebase Studio.
 
-## Safety boundary
-
-This demo uses a separate Firebase project (`DemoApp`) and does not connect to the production Firebase project used by the original application.
-
-The repository is intended to showcase the application's UX, workflow design, dashboards, KPI tracking, spend management, WBR, action management, and related capabilities using demo data.
+To get started, take a look at src/app/page.tsx.
