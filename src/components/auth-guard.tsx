@@ -1,80 +1,43 @@
 'use client';
 
-import { useUser, useDoc } from '@/firebase';
-import { UserProfile } from '@/lib/types';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
+/**
+ * Demo authentication guard.
+ *
+ * The demo intentionally does not use Firebase Authentication or user
+ * profiles. Login is represented by a sessionStorage flag created by the
+ * demo login page. This keeps the production application's authentication
+ * completely separate while allowing recruiters to explore every dashboard
+ * area without creating accounts.
+ */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading: authLoading } = useUser();
-  const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(user ? `users/${user.uid}` : null);
   const router = useRouter();
-  const pathname = usePathname();
+  const [checked, setChecked] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/');
+    const isAuthenticated = sessionStorage.getItem('aztec-demo-authenticated') === 'true';
+
+    if (!isAuthenticated) {
+      router.replace('/');
       return;
     }
 
-    if (user && !profileLoading && !userProfile && pathname.startsWith('/dashboard')) {
-      return;
-    }
+    setAuthenticated(true);
+    setChecked(true);
+  }, [router]);
 
-    if (userProfile) {
-      // Pending users should only see the awaiting approval page
-      if (userProfile.status === 'Pending' && pathname !== '/awaiting-approval') {
-        router.push('/awaiting-approval');
-        return;
-      }
-
-      // Approved users should not be on awaiting approval
-      if (userProfile.status !== 'Pending' && pathname === '/awaiting-approval') {
-        router.push('/dashboard');
-        return;
-      }
-
-      if (pathname.startsWith('/dashboard')) {
-        const isAdmin = userProfile.role === 'Admin';
-        const permissions = userProfile.permissions || [];
-        
-        // CRITICAL: Order matters here to prevent prefix matching overlaps
-        // e.g. /dashboard/spends-dashboard should not be caught by /dashboard/spends
-        const routeMapping = [
-          { path: '/dashboard/spends-dashboard', key: 'dashboard' },
-          { path: '/dashboard/spends-forecast', key: 'forecast' },
-          { path: '/dashboard/spends', key: 'spends' },
-          { path: '/dashboard/business-snapshot', key: 'snapshot' },
-          { path: '/dashboard/sales-tracker', key: 'sales' },
-          { path: '/dashboard/wbr', key: 'wbr' },
-          { path: '/dashboard/kpi-tracking', key: 'tracker' },
-          { path: '/dashboard/actions', key: 'actions' },
-          { path: '/dashboard/admin', key: 'admin' },
-        ];
-
-        const match = routeMapping.find(m => pathname.startsWith(m.path));
-        const requiredPermission = match?.key;
-
-        if (requiredPermission && !isAdmin && !permissions.includes(requiredPermission)) {
-          // Find first allowed page, fallback to snapshot if none (though sidebar handles this visually)
-          const firstAllowed = routeMapping.find(m => permissions.includes(m.key))?.path || '/dashboard/business-snapshot';
-          router.push(firstAllowed);
-        }
-      }
-    }
-  }, [user, authLoading, userProfile, pathname, router, profileLoading]);
-
-  if (authLoading || (user && profileLoading)) {
+  if (!checked) {
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background">
-            <p className="animate-pulse text-sm font-medium">Verifying access...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="animate-pulse text-sm font-medium">Loading...</p>
+      </div>
     );
   }
-  
-  if (!user) {
-      return null;
-  }
+
+  if (!authenticated) return null;
 
   return <>{children}</>;
 }
