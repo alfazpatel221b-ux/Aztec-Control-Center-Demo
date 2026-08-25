@@ -1,11 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useState } from 'react';
 import { SokratiLogo } from '@/components/sokrati-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,32 +10,26 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
-  const auth = useAuth();
-  const { user, loading } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) router.push('/dashboard');
-  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
-    setError(null);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
-    } catch (error: any) {
-      setError('Invalid credentials or unauthorized account.');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
 
-  if (loading || user) return null;
+    // Demo-only authentication: deliberately independent of Firebase Auth.
+    // Any non-empty email/password combination is accepted so the demo can
+    // be explored without creating or maintaining demo users.
+    if (email.trim() && password.trim()) {
+      sessionStorage.setItem('aztec-demo-authenticated', 'true');
+      sessionStorage.setItem('aztec-demo-email', email.trim());
+      router.push('/dashboard');
+      return;
+    }
+
+    setIsLoggingIn(false);
+  };
 
   return (
     <div className="flex h-screen w-full">
@@ -57,7 +48,7 @@ export default function LoginPage() {
                 <Label className="micro-label">Email</Label>
                 <Input
                   className="h-12 border-neutral-300 focus:border-primary focus:border-2 transition-all rounded-none"
-                  type="email"
+                  type="text"
                   placeholder="name@dentsu.com"
                   required
                   value={email}
@@ -78,8 +69,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            
             <Button 
               type="submit" 
               className="w-full h-12 font-bold uppercase tracking-[0.15em] text-xs"
