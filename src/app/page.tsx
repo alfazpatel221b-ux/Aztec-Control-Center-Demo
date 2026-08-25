@@ -1,11 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useState } from 'react';
 import { SokratiLogo } from '@/components/sokrati-logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,32 +10,17 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
-  const auth = useAuth();
-  const { user, loading } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) router.push('/dashboard');
-  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
-    setError(null);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
-    } catch (error: any) {
-      setError('Invalid credentials or unauthorized account.');
-    } finally {
-      setIsLoggingIn(false);
-    }
+    sessionStorage.setItem('aztec-demo-authenticated', 'true');
+    sessionStorage.setItem('aztec-demo-email', email.trim() || 'demo@dentsu.com');
+    router.push('/dashboard');
   };
-
-  if (loading || user) return null;
 
   return (
     <div className="flex h-screen w-full">
@@ -78,13 +60,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            
-            <Button 
-              type="submit" 
-              className="w-full h-12 font-bold uppercase tracking-[0.15em] text-xs"
-              disabled={isLoggingIn}
-            >
+            <Button type="submit" className="w-full h-12 font-bold uppercase tracking-[0.15em] text-xs" disabled={isLoggingIn}>
               {isLoggingIn ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
@@ -100,11 +76,7 @@ export default function LoginPage() {
       </div>
 
       <div className="hidden lg:block lg:w-1/2 relative bg-ink overflow-hidden">
-        <img 
-          src="https://images.pexels.com/photos/669610/pexels-photo-669610.jpeg" 
-          alt="Performance analytics workspace" 
-          className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity grayscale"
-        />
+        <img src="https://images.pexels.com/photos/669610/pexels-photo-669610.jpeg" alt="Performance analytics workspace" className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity grayscale" />
         <div className="absolute inset-0 bg-brand/30 mix-blend-multiply" />
         <div className="absolute bottom-12 left-12 right-12">
             <div className="p-8 border border-white/20 bg-ink/70">
