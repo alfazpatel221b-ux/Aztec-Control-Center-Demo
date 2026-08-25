@@ -2,9 +2,6 @@ name: Prepare Demo App
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/build-demo.yml'
 
 permissions:
   contents: write
@@ -61,5 +58,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Restore exact original application source" || echo "No changes to commit"
+          git commit -m "Prepare recruiter-safe demo application" || echo "No changes to commit"
           git push
