@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // Allows the workstation domain to communicate with the Next.js dev server resources
+    allowedDevOrigins: ['*.cloudworkstations.dev', 'localhost:9002'],
+  },
 };
 
 export default nextConfig;
