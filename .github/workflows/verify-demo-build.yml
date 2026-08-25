@@ -1,0 +1,40 @@
+name: Verify Demo Build
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify generated CSS
+        shell: bash
+        run: |
+          echo '--- generated CSS files ---'
+          find .next/static/css -type f -maxdepth 1 -print
+          echo '--- checking for Tailwind utility output ---'
+          if grep -Rqs '.flex' .next/static/css; then
+            echo 'Tailwind CSS utilities are present in the production bundle.'
+          else
+            echo 'ERROR: Tailwind utility output was not found in generated CSS.'
+            exit 1
+          fi
